@@ -1,0 +1,159 @@
+-- SQL Queries | Zahra Gholami
+
+-- 1. Countries with the highest frequency in the dataset
+SELECT authors.birth_place_id, birth_places.birth_place AS country, COUNT(*) AS how_many
+FROM authors, birth_places
+WHERE birth_places.id = authors.birth_place_id
+GROUP BY country
+ORDER BY how_many DESC LIMIT 11;
+
+-- 2. What are the 50 most popular books based on the number of ratings and average rating?
+SELECT authors.gender, books.title, books.ratings, books.average_rating
+FROM authors, books
+WHERE authors.id = books.author_id
+ORDER BY ratings DESC, average_rating DESC LIMIT 50;
+
+--3. What is the gender ratio of authors of 50 most popular books? (This is two queries)
+CREATE VIEW popular_books AS
+SELECT authors.gender, books.title, books.ratings, books.average_rating
+FROM authors, books
+WHERE authors.id = books.author_id
+ORDER BY ratings DESC, average_rating DESC LIMIT 50;
+
+SELECT gender, COUNT(*) AS how_many
+FROM popular_books
+GROUP BY gender;
+
+--4. Who are the most popular authors based on number of ratings and average rating?
+
+SELECT name, gender, ratings, average_rating FROM authors
+ORDER BY ratings DESC, average_rating DESC LIMIT 50;
+
+--5. What is the gender ratio of 50 most popular authors? (two queries)
+
+CREATE VIEW popular_authors AS
+SELECT name, gender, ratings, average_rating FROM authors
+ORDER BY ratings DESC, average_rating DESC LIMIT 50;
+
+SELECT gender, COUNT(*) AS how_many
+FROM popular_authors
+GROUP BY gender;
+
+--6. What is the overall gender ratio of authors in the dataset?
+
+SELECT gender, (COUNT(gender) * 100 / (SELECT COUNT(id) FROM authors)) AS percentage
+FROM authors
+GROUP BY gender;
+
+--7. What are the most common genres?
+
+SELECT genres.genre, COUNT(*) AS how_many
+FROM genres, books
+WHERE genres.id = books.genre_id
+GROUP BY genre
+ORDER BY how_many DESC LIMIT 10;
+
+--8. What are the genres of 20 most popular books?
+
+SELECT genres.genre, books.ratings, books.average_rating
+FROM genres, books
+WHERE genres.id = books.genre_id
+ORDER BY ratings DESC, average_rating DESC LIMIT 20;
+
+--9. What is the average rating of all authors based on gender?
+SELECT gender, AVG(average_rating)
+FROM authors
+GROUP BY gender;
+
+--10. What are the books with the highest number of reviews?
+
+SELECT title, reviews
+FROM books
+ORDER BY reviews DESC LIMIT 10;
+
+--11. Which books have higher provocativeness?
+
+SELECT title, (reviews/ratings) AS ratio, average_rating, ratings, reviews FROM books
+WHERE ratings > 1000
+ORDER BY ratio DESC LIMIT 10;
+
++------------------------------------------------+--------+----------------+---------+---------+
+| title                                          | ratio  | average_rating | ratings | reviews |
++------------------------------------------------+--------+----------------+---------+---------+
+| Song of Blood & Stone                          | 0.4728 |           3.73 |    1121 |     530 |
+| Fawkes                                         | 0.4598 |           3.91 |    1542 |     709 |
+| The Almond Tree                                | 0.4210 |           4.12 |    4860 |    2046 |
+| Unscrupulous                                   | 0.4034 |           3.71 |    1842 |     743 |
+| The Light Between Worlds                       | 0.3755 |            3.9 |    1076 |     404 |
+| Toil & Trouble: 15 Tales of Women & Witchcraft | 0.3717 |           3.71 |    1840 |     684 |
+| Mask of Shadows                                | 0.3703 |           3.64 |    2814 |    1042 |
+| Black Balled                                   | 0.3631 |           3.38 |    1209 |     439 |
+| The Seafarer's Kiss                            | 0.3612 |           3.72 |    1005 |     363 |
+| Bookishly Ever After                           | 0.3556 |           3.49 |    1527 |     543 |
++------------------------------------------------+--------+----------------+---------+---------+
+
+--12. Who are the authors of 20 highest score books?
+
+SELECT authors.name, authors.gender, books.title, books.score
+FROM authors, books
+WHERE authors.id = books.author_id
+ORDER BY score DESC LIMIT 20;
+
++-----------------------+--------+--------------------------------------------------------------+--------+
+| name                  | gender | title                                                        | score  |
++-----------------------+--------+--------------------------------------------------------------+--------+
+| Shel Silverstein      | male   | The Giving Tree                                              | 598270 |
+| Lewis Carroll         | male   | Alice's Adventures in Wonderland & Through the Looking-Glass | 489613 |
+| Oscar Wilde           | male   | The Picture of Dorian Gray                                   | 442035 |
+| Veronica Roth         | female | Allegiant                                                    | 391578 |
+| Maurice Sendak        | male   | Where the Wild Things Are                                    | 285130 |
+| Frank Herbert         | male   | Dune                                                         | 271577 |
+| Dr. Seuss             | male   | Oh, The Places You'll Go!                                    | 262761 |
+| Joseph Heller         | male   | Catch-22                                                     | 242647 |
+| E.L. James            | male   | Fifty Shades of Grey                                         | 230045 |
+| L.M. Montgomery       | female | Anne of Green Gables                                         | 221010 |
+| Edgar Allan Poe       | male   | The Complete Stories and Poems                               | 201253 |
+| Vladimir Nabokov      | male   | Lolita                                                       | 198261 |
+| Victoria Aveyard      | male   | Red Queen                                                    | 187627 |
+| Margaret Wise Brown   | female | Goodnight Moon                                               | 181550 |
+| Anita Diamant         | female | The Red Tent                                                 | 175105 |
+| Leo Tolstoy           | male   | War and Peace                                                | 165568 |
+| Norton Juster         | male   | The Phantom Tollbooth                                        | 160113 |
+| Erich Maria Remarque  | male   | All Quiet on the Western Front                               | 155819 |
+| Harriet Beecher Stowe | male   | Uncle Tom's Cabin                                            | 154366 |
+| Ann Brashares         | female | The Sisterhood of the Traveling Pants                        | 153208 |
++-----------------------+--------+--------------------------------------------------------------+--------+
+
+--13. What is the total number of author ratings based on gender?
+
+SELECT gender, SUM(ratings) FROM authors
+GROUP BY gender;
+
+--14. What is the total number of author reviews based on gender?
+
+SELECT gender, SUM(reviews) FROM authors
+GROUP BY gender;
+
+--15. Which authors have more written more than one book?
+
+CREATE VIEW prolific_authors AS
+SELECT authors.name, authors.gender, COUNT(*) AS how_many
+FROM authors, books
+WHERE books.author_id = authors.id
+GROUP BY name
+HAVING how_many > 1
+ORDER BY how_many DESC;
+
+--16. Which authors have written more than 5 books?
+
+SELECT authors.name, COUNT(*) AS how_many
+FROM authors, books
+WHERE books.author_id = authors.id
+GROUP BY name
+HAVING how_many > 5
+ORDER BY how_many DESC;
+
+--17. What is the gender ratio of prolific authors?
+
+SELECT gender, COUNT(gender) FROM prolific_authors
+GROUP BY gender;
